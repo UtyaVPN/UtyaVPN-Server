@@ -112,16 +112,8 @@ fi
 iptables -w -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 
 # nat
-# OpenVPN TCP port redirection for backup connections
-if [[ "$OPENVPN_80_443_TCP" == "y" ]]; then
-	iptables -w -t nat -A PREROUTING -i "$INTERFACE" -p tcp --dport 80 -j REDIRECT --to-ports 50080
-	iptables -w -t nat -A PREROUTING -i "$INTERFACE" -p tcp --dport 443 -j REDIRECT --to-ports 50443
-fi
-# OpenVPN UDP port redirection for backup connections
-if [[ "$OPENVPN_80_443_UDP" == "y" ]]; then
-	iptables -w -t nat -A PREROUTING -i "$INTERFACE" -p udp --dport 80 -j REDIRECT --to-ports 50080
-	iptables -w -t nat -A PREROUTING -i "$INTERFACE" -p udp --dport 443 -j REDIRECT --to-ports 50443
-fi
+
+
 # AmneziaWG redirection ports to WireGuard
 iptables -w -t nat -A PREROUTING -i "$INTERFACE" -p udp --dport 52080 -j REDIRECT --to-ports 51080
 iptables -w -t nat -A PREROUTING -i "$INTERFACE" -p udp --dport 52443 -j REDIRECT --to-ports 51443
@@ -129,9 +121,11 @@ iptables -w -t nat -A PREROUTING -i "$INTERFACE" -p udp --dport 52443 -j REDIREC
 iptables -w -t nat -A PREROUTING -s ${IP}.29.0.0/22 ! -d ${IP}.29.0.1/32 -p udp --dport 53 -j DNAT --to-destination ${IP}.29.0.1
 iptables -w -t nat -A PREROUTING -s ${IP}.29.4.0/22 ! -d ${IP}.29.4.1/32 -p udp --dport 53 -j DNAT --to-destination ${IP}.29.4.1
 iptables -w -t nat -A PREROUTING -s ${IP}.29.8.0/24 ! -d ${IP}.29.8.1/32 -p udp --dport 53 -j DNAT --to-destination ${IP}.29.8.1
+iptables -w -t nat -A PREROUTING -s ${IP}.29.12.0/24 ! -d ${IP}.29.12.1/32 -p udp --dport 53 -j DNAT --to-destination ${IP}.29.12.1
 iptables -w -t nat -A PREROUTING -s ${IP}.29.0.0/22 ! -d ${IP}.29.0.1/32 -p tcp --dport 53 -j DNAT --to-destination ${IP}.29.0.1
 iptables -w -t nat -A PREROUTING -s ${IP}.29.4.0/22 ! -d ${IP}.29.4.1/32 -p tcp --dport 53 -j DNAT --to-destination ${IP}.29.4.1
 iptables -w -t nat -A PREROUTING -s ${IP}.29.8.0/24 ! -d ${IP}.29.8.1/32 -p tcp --dport 53 -j DNAT --to-destination ${IP}.29.8.1
+iptables -w -t nat -A PREROUTING -s ${IP}.29.12.0/24 ! -d ${IP}.29.12.1/32 -p tcp --dport 53 -j DNAT --to-destination ${IP}.29.12.1
 # Restrict forwarding
 if [[ "$RESTRICT_FORWARD" == "y" ]]; then
 	iptables -w -t nat -A PREROUTING -s ${IP}.29.0.0/16 ! -d ${IP}.30.0.0/15 -j CONNMARK --set-mark 0x1

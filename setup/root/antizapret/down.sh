@@ -62,12 +62,8 @@ ip6tables -w -D INPUT -p tcp --dport ssh -m conntrack --ctstate NEW -m hashlimit
 iptables -w -t mangle -D FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 
 # nat
-# OpenVPN TCP port redirection for backup connections
-iptables -w -t nat -D PREROUTING -i "$INTERFACE" -p tcp --dport 80 -j REDIRECT --to-ports 50080
-iptables -w -t nat -D PREROUTING -i "$INTERFACE" -p tcp --dport 443 -j REDIRECT --to-ports 50443
-# OpenVPN UDP port redirection for backup connections
-iptables -w -t nat -D PREROUTING -i "$INTERFACE" -p udp --dport 80 -j REDIRECT --to-ports 50080
-iptables -w -t nat -D PREROUTING -i "$INTERFACE" -p udp --dport 443 -j REDIRECT --to-ports 50443
+
+
 # AmneziaWG redirection ports to WireGuard
 iptables -w -t nat -D PREROUTING -i "$INTERFACE" -p udp --dport 52080 -j REDIRECT --to-ports 51080
 iptables -w -t nat -D PREROUTING -i "$INTERFACE" -p udp --dport 52443 -j REDIRECT --to-ports 51443
@@ -75,15 +71,19 @@ iptables -w -t nat -D PREROUTING -i "$INTERFACE" -p udp --dport 52443 -j REDIREC
 iptables -w -t nat -D PREROUTING -s 10.29.0.0/22 ! -d 10.29.0.1/32 -p udp --dport 53 -j DNAT --to-destination 10.29.0.1
 iptables -w -t nat -D PREROUTING -s 10.29.4.0/22 ! -d 10.29.4.1/32 -p udp --dport 53 -j DNAT --to-destination 10.29.4.1
 iptables -w -t nat -D PREROUTING -s 10.29.8.0/24 ! -d 10.29.8.1/32 -p udp --dport 53 -j DNAT --to-destination 10.29.8.1
+iptables -w -t nat -D PREROUTING -s 10.29.12.0/24 ! -d 10.29.12.1/32 -p udp --dport 53 -j DNAT --to-destination 10.29.12.1
 iptables -w -t nat -D PREROUTING -s 10.29.0.0/22 ! -d 10.29.0.1/32 -p tcp --dport 53 -j DNAT --to-destination 10.29.0.1
 iptables -w -t nat -D PREROUTING -s 10.29.4.0/22 ! -d 10.29.4.1/32 -p tcp --dport 53 -j DNAT --to-destination 10.29.4.1
 iptables -w -t nat -D PREROUTING -s 10.29.8.0/24 ! -d 10.29.8.1/32 -p tcp --dport 53 -j DNAT --to-destination 10.29.8.1
+iptables -w -t nat -D PREROUTING -s 10.29.12.0/24 ! -d 10.29.12.1/32 -p tcp --dport 53 -j DNAT --to-destination 10.29.12.1
 iptables -w -t nat -D PREROUTING -s 172.29.0.0/22 ! -d 172.29.0.1/32 -p udp --dport 53 -j DNAT --to-destination 172.29.0.1
 iptables -w -t nat -D PREROUTING -s 172.29.4.0/22 ! -d 172.29.4.1/32 -p udp --dport 53 -j DNAT --to-destination 172.29.4.1
 iptables -w -t nat -D PREROUTING -s 172.29.8.0/24 ! -d 172.29.8.1/32 -p udp --dport 53 -j DNAT --to-destination 172.29.8.1
+iptables -w -t nat -D PREROUTING -s 172.29.12.0/24 ! -d 172.29.12.1/32 -p udp --dport 53 -j DNAT --to-destination 172.29.12.1
 iptables -w -t nat -D PREROUTING -s 172.29.0.0/22 ! -d 172.29.0.1/32 -p tcp --dport 53 -j DNAT --to-destination 172.29.0.1
 iptables -w -t nat -D PREROUTING -s 172.29.4.0/22 ! -d 172.29.4.1/32 -p tcp --dport 53 -j DNAT --to-destination 172.29.4.1
 iptables -w -t nat -D PREROUTING -s 172.29.8.0/24 ! -d 172.29.8.1/32 -p tcp --dport 53 -j DNAT --to-destination 172.29.8.1
+iptables -w -t nat -D PREROUTING -s 172.29.12.0/24 ! -d 172.29.12.1/32 -p tcp --dport 53 -j DNAT --to-destination 172.29.12.1
 # Restrict forwarding
 iptables -w -t nat -D PREROUTING -s 10.29.0.0/16 ! -d 10.30.0.0/15 -j CONNMARK --set-mark 0x1
 iptables -w -t nat -D PREROUTING -s 172.29.0.0/16 ! -d 172.30.0.0/15 -j CONNMARK --set-mark 0x1

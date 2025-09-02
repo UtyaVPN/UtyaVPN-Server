@@ -2,7 +2,7 @@
 #
 # Скрипт для установки на своём сервере AntiZapret VPN и обычного VPN
 #
-# https://github.com/GubernievS/AntiZapret-VPN
+# https://github.com/UtyaVPN/UtyaVPN-Server
 #
 
 export LC_ALL=C
@@ -10,8 +10,8 @@ export LC_ALL=C
 #
 # Проверка прав root
 if [[ "$EUID" -ne 0 ]]; then
-	echo 'Error: You need to run this as root!'
-	exit 2
+        echo 'Error: You need to run this as root!'
+        exit 2
 fi
 
 cd /root
@@ -19,8 +19,8 @@ cd /root
 #
 # Проверка на OpenVZ и LXC
 if [[ "$(systemd-detect-virt)" == "openvz" || "$(systemd-detect-virt)" == "lxc" ]]; then
-	echo 'Error: OpenVZ and LXC are not supported!'
-	exit 3
+        echo 'Error: OpenVZ and LXC are not supported!'
+        exit 3
 fi
 
 #
@@ -29,31 +29,31 @@ OS="$(lsb_release -si | tr '[:upper:]' '[:lower:]')"
 VERSION="$(lsb_release -rs | cut -d '.' -f1)"
 
 if [[ "$OS" == "debian" ]]; then
-	if [[ $VERSION -lt 11 ]]; then
-		echo 'Error: Your Debian version is not supported!'
-		exit 4
-	fi
+        if [[ $VERSION -lt 11 ]]; then
+                echo 'Error: Your Debian version is not supported!'
+                exit 4
+        fi
 elif [[ "$OS" == "ubuntu" ]]; then
-	if [[ $VERSION -lt 22 ]]; then
-		echo 'Error: Your Ubuntu version is not supported!'
-		exit 5
-	fi
+        if [[ $VERSION -lt 22 ]]; then
+                echo 'Error: Your Ubuntu version is not supported!'
+                exit 5
+        fi
 elif [[ "$OS" != "debian" ]] && [[ "$OS" != "ubuntu" ]]; then
-	echo 'Error: Your Linux version is not supported!'
-	exit 6
+        echo 'Error: Your Linux version is not supported!'
+        exit 6
 fi
 
 #
 # Проверка свободного места (минимум 2Гб)
 if [[ $(df --output=avail / | tail -n 1) -lt $((2 * 1024 * 1024)) ]]; then
-	echo 'Error: Low disk space! You need 2GB of free space!'
-	exit 7
+        echo 'Error: Low disk space! You need 2GB of free space!'
+        exit 7
 fi
 
 echo
 echo -e '\e[1;32mInstalling AntiZapret VPN + full VPN...\e[0m'
 echo 'OpenVPN + WireGuard + AmneziaWG'
-echo 'More details: https://github.com/GubernievS/AntiZapret-VPN'
+echo 'More details: https://github.com/UtyaVPN/UtyaVPN-Server'
 
 #
 # Спрашиваем о настройках
@@ -63,12 +63,12 @@ echo '    0) None        - Do not install anti-censorship patch, or remove if al
 echo '    1) Strong      - Recommended by default'
 echo '    2) Error-free  - Use if Strong patch causes connection error, recommended for Mikrotik routers'
 until [[ "$OPENVPN_PATCH" =~ ^[0-2]$ ]]; do
-	read -rp 'Version choice [0-2]: ' -e -i 1 OPENVPN_PATCH
+        read -rp 'Version choice [0-2]: ' -e -i 1 OPENVPN_PATCH
 done
 echo
 echo 'OpenVPN DCO lowers CPU load, boosts data speeds, and only supports AES-128-GCM, AES-256-GCM and CHACHA20-POLY1305 encryption'
 until [[ "$OPENVPN_DCO" =~ (y|n) ]]; do
-	read -rp 'Turn on OpenVPN DCO? [y/n]: ' -e -i y OPENVPN_DCO
+        read -rp 'Turn on OpenVPN DCO? [y/n]: ' -e -i y OPENVPN_DCO
 done
 echo
 echo -e 'Choose DNS resolvers for \e[1;32mAntiZapret VPN\e[0m (antizapret-*):'
@@ -83,7 +83,7 @@ echo '  * - Resolvers optimized for users in Russia'
 echo ' ** - Enable additional proxying and hide this server IP on some internet resources'
 echo '      Use only if this server is geolocated in Russia or problems accessing some internet resources'
 until [[ "$ANTIZAPRET_DNS" =~ ^[1-5]$ ]]; do
-	read -rp 'DNS choice [1-5]: ' -e -i 1 ANTIZAPRET_DNS
+        read -rp 'DNS choice [1-5]: ' -e -i 1 ANTIZAPRET_DNS
 done
 echo
 echo -e 'Choose DNS resolvers for \e[1;32mfull VPN\e[0m (vpn-*):'
@@ -99,42 +99,35 @@ echo '  * - Resolvers supports EDNS Client Subnet'
 echo ' ** - Enable additional proxying and hide this server IP on some internet resources'
 echo '      Use only if this server is geolocated in Russia or problems accessing some internet resources'
 until [[ "$VPN_DNS" =~ ^[1-7]$ ]]; do
-	read -rp 'DNS choice [1-7]: ' -e -i 1 VPN_DNS
+        read -rp 'DNS choice [1-7]: ' -e -i 1 VPN_DNS
 done
 echo
 until [[ "$BLOCK_ADS" =~ (y|n) ]]; do
-	read -rp $'Enable blocking ads, trackers, malware and phishing websites in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002 (antizapret-*) based on AdGuard and OISD rules? [y/n]: ' -e -i y BLOCK_ADS
+        read -rp $'Enable blocking ads, trackers, malware and phishing websites in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002 (antizapret-*) based on AdGuard and OISD rules? [y/n]: ' -e -i y BLOCK_ADS
 done
 echo
 echo 'Default IP address range:      10.28.0.0/14'
 echo 'Alternative IP address range: 172.28.0.0/14'
 until [[ "$ALTERNATIVE_IP" =~ (y|n) ]]; do
-	read -rp 'Use alternative range of IP addresses? [y/n]: ' -e -i n ALTERNATIVE_IP
+        read -rp 'Use alternative range of IP addresses? [y/n]: ' -e -i n ALTERNATIVE_IP
 done
-echo
-until [[ "$OPENVPN_80_443_TCP" =~ (y|n) ]]; do
-	read -rp 'Use TCP ports 80 and 443 as backup for OpenVPN connections? [y/n]: ' -e -i y OPENVPN_80_443_TCP
-done
-echo
-until [[ "$OPENVPN_80_443_UDP" =~ (y|n) ]]; do
-	read -rp 'Use UDP ports 80 and 443 as backup for OpenVPN connections? [y/n]: ' -e -i y OPENVPN_80_443_UDP
-done
+
 echo
 until [[ "$OPENVPN_DUPLICATE" =~ (y|n) ]]; do
-	read -rp 'Allow multiple clients connecting to OpenVPN using same profile file (*.ovpn)? [y/n]: ' -e -i y OPENVPN_DUPLICATE
+        read -rp 'Allow multiple clients connecting to OpenVPN using same profile file (*.ovpn)? [y/n]: ' -e -i y OPENVPN_DUPLICATE
 done
 echo
 until [[ "$OPENVPN_LOG" =~ (y|n) ]]; do
-	read -rp 'Enable detailed logs in OpenVPN? [y/n]: ' -e -i n OPENVPN_LOG
+        read -rp 'Enable detailed logs in OpenVPN? [y/n]: ' -e -i n OPENVPN_LOG
 done
 echo
 until [[ "$SSH_PROTECTION" =~ (y|n) ]]; do
-	read -rp 'Enable SSH brute-force protection? [y/n]: ' -e -i y SSH_PROTECTION
+        read -rp 'Enable SSH brute-force protection? [y/n]: ' -e -i y SSH_PROTECTION
 done
 echo
 echo "Warning! Network attack and scan protection may block VPN or third-party applications!"
 until [[ "$ATTACK_PROTECTION" =~ (y|n) ]]; do
-	read -rp 'Enable network attack and scan protection? [y/n]: ' -e -i y ATTACK_PROTECTION
+        read -rp 'Enable network attack and scan protection? [y/n]: ' -e -i y ATTACK_PROTECTION
 done
 echo
 echo "Warning! Torrent guard block VPN traffic for 1 minute on torrent detection!"
@@ -148,54 +141,68 @@ done
 echo
 while read -rp 'Enter valid domain name for this OpenVPN server or press Enter to skip: ' -e OPENVPN_HOST
 do
-	[[ -z "$OPENVPN_HOST" ]] && break
-	[[ -n $(getent ahostsv4 "$OPENVPN_HOST") ]] && break
+        [[ -z "$OPENVPN_HOST" ]] && break
+        [[ -n $(getent ahostsv4 "$OPENVPN_HOST") ]] && break
 done
 echo
 while read -rp 'Enter valid domain name for this WireGuard/AmneziaWG server or press Enter to skip: ' -e WIREGUARD_HOST
 do
-	[[ -z "$WIREGUARD_HOST" ]] && break
-	[[ -n $(getent ahostsv4 "$WIREGUARD_HOST") ]] && break
+        [[ -z "$WIREGUARD_HOST" ]] && break
+        [[ -n $(getent ahostsv4 "$WIREGUARD_HOST") ]] && break
 done
 echo
+echo 'VLESS Reality XTLS will be installed.'
+until [[ "$VLESS_PORT" =~ ^[-1-9]+$ ]] && [ "$VLESS_PORT" -ge 1 ] && [ "$VLESS_PORT" -le 65535 ]; do
+    read -rp 'Enter VLESS Reality port (e.g., 442, 8443): ' -e -i 443 VLESS_PORT
+done
+echo
+while read -rp 'Enter a legitimate website to mimic for VLESS Reality (e.g., www.google.com:442): ' -e -i "www.google.com:443" VLESS_DEST
+do
+    [[ -n "$VLESS_DEST" ]] && break
+done
+echo
+while read -rp 'Enter server names for VLESS Reality (comma-separated, e.g., www.google.com,google.com): ' -e -i "google.com" VLESS_SERVER_NAMES
+do
+    [[ -n "$VLESS_SERVER_NAMES" ]] && break
+done
 until [[ "$ROUTE_ALL" =~ (y|n) ]]; do
-	read -rp $'Route all traffic for domains via \001\e[1;32m\002AntiZapret VPN\001\e[0m\002, excluding Russian domains and domains from config/exclude-hosts.txt? [y/n]: ' -e -i n ROUTE_ALL
+        read -rp $'Route all traffic for domains via \001\e[1;32m\002AntiZapret VPN\001\e[0m\002, excluding Russian domains and domains from config/exclude-hosts.txt? [y/n]: ' -e -i n ROUTE_ALL
 done
 echo
 until [[ "$DISCORD_INCLUDE" =~ (y|n) ]]; do
-	read -rp $'Include Discord voice IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i y DISCORD_INCLUDE
+        read -rp $'Include Discord voice IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i y DISCORD_INCLUDE
 done
 echo
 until [[ "$CLOUDFLARE_INCLUDE" =~ (y|n) ]]; do
-	read -rp $'Include Cloudflare IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i y CLOUDFLARE_INCLUDE
+        read -rp $'Include Cloudflare IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i y CLOUDFLARE_INCLUDE
 done
 echo
 until [[ "$TELEGRAM_INCLUDE" =~ (y|n) ]]; do
-	read -rp $'Include Telegram IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i y TELEGRAM_INCLUDE
+        read -rp $'Include Telegram IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i y TELEGRAM_INCLUDE
 done
 echo
 until [[ "$AMAZON_INCLUDE" =~ (y|n) ]]; do
-	read -rp $'Include Amazon IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i n AMAZON_INCLUDE
+        read -rp $'Include Amazon IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i n AMAZON_INCLUDE
 done
 echo
 until [[ "$HETZNER_INCLUDE" =~ (y|n) ]]; do
-	read -rp $'Include Hetzner IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i n HETZNER_INCLUDE
+        read -rp $'Include Hetzner IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i n HETZNER_INCLUDE
 done
 echo
 until [[ "$DIGITALOCEAN_INCLUDE" =~ (y|n) ]]; do
-	read -rp $'Include DigitalOcean IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i n DIGITALOCEAN_INCLUDE
+        read -rp $'Include DigitalOcean IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i n DIGITALOCEAN_INCLUDE
 done
 echo
 until [[ "$OVH_INCLUDE" =~ (y|n) ]]; do
-	read -rp $'Include OVH IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i n OVH_INCLUDE
+        read -rp $'Include OVH IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i n OVH_INCLUDE
 done
 echo
 until [[ "$GOOGLE_INCLUDE" =~ (y|n) ]]; do
-	read -rp $'Include Google IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i n GOOGLE_INCLUDE
+        read -rp $'Include Google IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i n GOOGLE_INCLUDE
 done
 echo
 until [[ "$AKAMAI_INCLUDE" =~ (y|n) ]]; do
-	read -rp $'Include Akamai IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i n AKAMAI_INCLUDE
+        read -rp $'Include Akamai IPs in \001\e[1;32m\002AntiZapret VPN\001\e[0m\002? [y/n]: ' -e -i n AKAMAI_INCLUDE
 done
 echo
 echo 'Preparing for installation, please wait...'
@@ -203,8 +210,8 @@ echo 'Preparing for installation, please wait...'
 #
 # Ожидание пока выполняется apt-get
 while pidof apt-get &>/dev/null; do
-	echo 'Waiting for apt-get to finish...';
-	sleep 5;
+        echo 'Waiting for apt-get to finish...';
+        sleep 5;
 done
 
 #
@@ -214,10 +221,63 @@ systemctl stop apt-daily.timer &>/dev/null
 systemctl stop apt-daily-upgrade.timer &>/dev/null
 
 #
+# Удаление или перемещение файлов и папок при обновлении
+systemctl stop openvpn-generate-keys &>/dev/null
+systemctl disable openvpn-generate-keys &>/dev/null
+systemctl stop dnsmap &>/dev/null
+systemctl disable dnsmap &>/dev/null
+systemctl stop ferm &>/dev/null
+systemctl disable ferm &>/dev/null
+
+rm -f /etc/sysctl.d/10-conntrack.conf
+rm -f /etc/sysctl.d/20-network.conf
+rm -f /etc/sysctl.d/99-antizapret.conf
+rm -f /etc/systemd/network/eth.network
+rm -f /etc/systemd/network/host.network
+rm -f /etc/systemd/system/openvpn-generate-keys.service
+rm -f /etc/systemd/system/dnsmap.service
+#rm -f /etc/apt/sources.list.d/amnezia*
+#rm -f /usr/share/keyrings/amnezia.gpg
+rm -f /usr/share/keyrings/cznic-labs-pkg.gpg
+rm -f /root/upgrade.sh
+rm -f /root/generate.sh
+rm -f /root/Enable-OpenVPN-DCO.sh
+rm -f /root/upgrade-openvpn.sh
+rm -f /root/create-swap.sh
+rm -f /root/disable-openvpn-dco.sh
+rm -f /root/enable-openvpn-dco.sh
+rm -f /root/patch-openvpn.sh
+rm -f /root/add-client.sh
+rm -f /root/delete-client.sh
+rm -f /root/*.ovpn
+rm -f /root/*.conf
+
+if [[ -d "/root/easy-rsa-ipsec/easyrsa3/pki" ]]; then
+        mkdir -p /root/easyrsa3
+        mv -f /root/easy-rsa-ipsec/easyrsa3/pki /root/easyrsa3/pki &>/dev/null
+fi
+mv -f /root/antizapret/custom.sh /root/antizapret/custom-doall.sh &>/dev/null
+
+rm -rf /root/vpn
+rm -rf /root/bot
+rm -rf /root/easy-rsa-ipsec
+rm -rf /root/.gnupg
+rm -rf /root/dnsmap
+rm -rf /root/openvpn
+rm -rf /etc/ferm
+
+apt-get purge -y python3-dnslib &>/dev/null
+apt-get purge -y gnupg2 &>/dev/null
+apt-get purge -y ferm &>/dev/null
+apt-get purge -y libpam0g-dev &>/dev/null
+#apt-get purge -y amneziawg &>/dev/null
+apt-get purge -y sshguard &>/dev/null
+
+#
 # Остановим и выключим обновляемые службы
-for service in kresd@ openvpn-server@ wg-quick@; do
-	systemctl list-units --type=service --no-pager | awk -v s="$service" '$1 ~ s"[^.]+\\.service" {print $1}' | xargs -r systemctl stop &>/dev/null
-	systemctl list-unit-files --type=service --no-pager | awk -v s="$service" '$1 ~ s"[^.]+\\.service" {print $1}' | xargs -r systemctl disable &>/dev/null
+for service in kresd@ openvpn-server@ wg-quick@ xray; do
+        systemctl list-units --type=service --no-pager | awk -v s="$service" '$1 ~ s"[^.]+\.service" {print $1}' | xargs -r systemctl stop &>/dev/null
+        systemctl list-unit-files --type=service --no-pager | awk -v s="$service" '$1 ~ s"[^.]+\.service" {print $1}' | xargs -r systemctl disable &>/dev/null
 done
 
 systemctl stop antizapret &>/dev/null
@@ -260,9 +320,9 @@ set -e
 #
 # Обработка ошибок
 handle_error() {
-	echo "$(lsb_release -ds) $(uname -r) $(date --iso-8601=seconds)"
-	echo -e "\e[1;31mError at line $1: $2\e[0m"
-	exit 1
+        echo "$(lsb_release -ds) $(uname -r) $(date --iso-8601=seconds)"
+        echo -e "\e[1;31mError at line $1: $2\e[0m"
+        exit 1
 }
 trap 'handle_error $LINENO "$BASH_COMMAND"' ERR
 
@@ -296,19 +356,85 @@ echo "deb [signed-by=/etc/apt/keyrings/openvpn-repo-public.gpg] https://build.op
 #
 # Добавим репозиторий Debian Backports
 if [[ "$OS" == "debian" ]]; then
-	if [[ "$VERSION" -ge 12 ]]; then
-		echo "deb http://deb.debian.org/debian $(lsb_release -cs)-backports main" > /etc/apt/sources.list.d/backports.list
-	elif [[ "$VERSION" -eq 11 ]]; then
-		echo "deb http://archive.debian.org/debian $(lsb_release -cs)-backports main" > /etc/apt/sources.list.d/backports.list
-	fi
+        if [[ "$VERSION" -ge 12 ]]; then
+                echo "deb http://deb.debian.org/debian $(lsb_release -cs)-backports main" > /etc/apt/sources.list.d/backports.list
+        elif [[ "$VERSION" -eq 11 ]]; then
+                echo "deb http://archive.debian.org/debian $(lsb_release -cs)-backports main" > /etc/apt/sources.list.d/backports.list
+        fi
 fi
 
 #
 # Ставим необходимые пакеты
 apt-get update
 apt-get install --reinstall -y git openvpn iptables easy-rsa gawk knot-resolver idn sipcalc python3-pip wireguard diffutils socat lua-cqueues ipset irqbalance
+bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
 apt-get autoremove -y
 apt-get clean
+
+echo
+echo 'Generating VLESS Reality keys...'
+XRAY_KEYS=$(/usr/local/bin/xray x25519)
+VLESS_PRIVATE_KEY=$(echo "$XRAY_KEYS" | grep 'Private key' | awk '{print $3}')
+VLESS_PUBLIC_KEY=$(echo "$XRAY_KEYS" | grep 'Public key' | awk '{print $3}')
+VLESS_UUID=$(/usr/local/bin/xray uuid)
+VLESS_SHORT_ID=$(openssl rand -hex 8)
+
+cat << EOF > /usr/local/etc/xray/config.json
+{
+  "log": { "loglevel": "warning" },
+  "api": {
+    "tag": "api",
+    "services": ["HandlerService"],
+    "listen": "127.0.0.1:10085"
+  },
+  "inbounds": [
+    {
+      "tag": "in-vless",
+      "listen": "0.0.0.0",
+      "port": $VLESS_PORT,
+      "protocol": "vless",
+      "settings": {
+        "clients": [],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "show": false,
+          "dest": "$VLESS_DEST",
+          "xver": 0,
+          "serverNames": ["$VLESS_SERVER_NAMES"],
+          "privateKey": "$VLESS_PRIVATE_KEY",
+          "shortIds": ["$VLESS_SHORT_ID"]
+        }
+      }
+    },
+    {
+      "tag": "api-in",
+      "listen": "127.0.0.1",
+      "port": 10086,
+      "protocol": "dokodemo-door",
+      "settings": {
+        "address": "127.0.0.1"
+      }
+    }
+  ],
+  "outbounds": [
+    { "protocol": "freedom", "settings": {} },
+    { "protocol": "blackhole", "tag": "api" }
+  ],
+  "routing": {
+    "rules": [
+      {
+        "inboundTag": ["api-in"],
+        "outboundTag": "api",
+        "type": "field"
+      }
+    ]
+  }
+}
+EOF
 
 #
 # Клонируем репозиторий и устанавливаем dnslib
@@ -319,7 +445,7 @@ PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip install --force-reinstall --user /tmp
 #
 # Клонируем репозиторий antizapret
 rm -rf /tmp/antizapret
-git clone https://github.com/GubernievS/AntiZapret-VPN.git /tmp/antizapret
+git clone https://github.com/UtyaVPN/UtyaVPN-Server.git /tmp/antizapret
 
 #
 # Сохраняем пользовательские настройки и пользовательские обработчики custom*.sh
@@ -339,15 +465,15 @@ rm -rf /root/config
 
 #
 # Сохраняем настройки
-echo "SETUP_DATE=$(date --iso-8601=seconds)
+echo "SERVER_HOST=$(ip -4 addr | sed -ne 's|^.* inet \([^/]*\)/.* scope global.*$|\1|p' | awk '{print $1}' | head -1)
+SETUP_DATE=$(date --iso-8601=seconds)
 OPENVPN_PATCH=${OPENVPN_PATCH}
 OPENVPN_DCO=${OPENVPN_DCO}
 ANTIZAPRET_DNS=${ANTIZAPRET_DNS}
 VPN_DNS=${VPN_DNS}
 BLOCK_ADS=${BLOCK_ADS}
 ALTERNATIVE_IP=${ALTERNATIVE_IP}
-OPENVPN_80_443_TCP=${OPENVPN_80_443_TCP}
-OPENVPN_80_443_UDP=${OPENVPN_80_443_UDP}
+
 OPENVPN_DUPLICATE=${OPENVPN_DUPLICATE}
 OPENVPN_LOG=${OPENVPN_LOG}
 SSH_PROTECTION=${SSH_PROTECTION}
@@ -365,7 +491,14 @@ HETZNER_INCLUDE=${HETZNER_INCLUDE}
 DIGITALOCEAN_INCLUDE=${DIGITALOCEAN_INCLUDE}
 OVH_INCLUDE=${OVH_INCLUDE}
 GOOGLE_INCLUDE=${GOOGLE_INCLUDE}
-AKAMAI_INCLUDE=${AKAMAI_INCLUDE}" > /tmp/antizapret/setup/root/antizapret/setup
+AKAMAI_INCLUDE=${AKAMAI_INCLUDE}
+VLESS_PORT=${VLESS_PORT}
+VLESS_DEST=${VLESS_DEST}
+VLESS_SERVER_NAMES=${VLESS_SERVER_NAMES}
+VLESS_PRIVATE_KEY=${VLESS_PRIVATE_KEY}
+VLESS_PUBLIC_KEY=${VLESS_PUBLIC_KEY}
+VLESS_SHORT_ID=${VLESS_SHORT_ID}
+VLESS_UUID=${VLESS_UUID}" > /tmp/antizapret/setup/root/antizapret/setup
 
 #
 # Выставляем разрешения
@@ -383,89 +516,141 @@ rm -rf /tmp/antizapret
 #
 # Настраиваем DNS в AntiZapret VPN
 if [[ "$ANTIZAPRET_DNS" == "2" ]]; then
-	# Cloudflare+Quad9
-	sed -i "s/'193\.58\.251\.251', '195\.112\.112\.1', '212\.92\.149\.149', '212\.92\.149\.150'/'1.1.1.1', '1.0.0.1', '9.9.9.10', '149.112.112.10'/" /etc/knot-resolver/kresd.conf
+        # Cloudflare+Quad9
+        sed -i "s/'193\.58\.251\.251', '195\.112\.112\.1', '212\.92\.149\.149', '212\.92\.149\.150'/'1.1.1.1', '1.0.0.1', '9.9.9.10', '149.112.112.10'/" /etc/knot-resolver/kresd.conf
 elif [[ "$ANTIZAPRET_DNS" == "3" ]]; then
-	# Comss
-	sed -i "s/'193\.58\.251\.251', '195\.112\.112\.1', '212\.92\.149\.149', '212\.92\.149\.150'/'83.220.169.155', '212.109.195.93'/" /etc/knot-resolver/kresd.conf
-	sed -i "s/'1\.1\.1\.1', '1\.0\.0\.1', '9\.9\.9\.10', '149\.112\.112\.10'/'83.220.169.155', '212.109.195.93'/" /etc/knot-resolver/kresd.conf
+        # Comss
+        sed -i "s/'193\.58\.251\.251', '195\.112\.112\.1', '212\.92\.149\.149', '212\.92\.149\.150'/'83.220.169.155', '212.109.195.93'/" /etc/knot-resolver/kresd.conf
+        sed -i "s/'1\.1\.1\.1', '1\.0\.0\.1', '9\.9\.9\.10', '149\.112\.112\.10'/'83.220.169.155', '212.109.195.93'/" /etc/knot-resolver/kresd.conf
 elif [[ "$ANTIZAPRET_DNS" == "4" ]]; then
-	# Xbox
-	sed -i "s/'193\.58\.251\.251', '195\.112\.112\.1', '212\.92\.149\.149', '212\.92\.149\.150'/'176.99.11.77', '80.78.247.254'/" /etc/knot-resolver/kresd.conf
-	sed -i "s/'1\.1\.1\.1', '1\.0\.0\.1', '9\.9\.9\.10', '149\.112\.112\.10'/'176.99.11.77', '80.78.247.254'/" /etc/knot-resolver/kresd.conf
+        # Xbox
+        sed -i "s/'193\.58\.251\.251', '195\.112\.112\.1', '212\.92\.149\.149', '212\.92\.149\.150'/'176.99.11.77', '80.78.247.254'/" /etc/knot-resolver/kresd.conf
+        sed -i "s/'1\.1\.1\.1', '1\.0\.0\.1', '9\.9\.9\.10', '149\.112\.112\.10'/'176.99.11.77', '80.78.247.254'/" /etc/knot-resolver/kresd.conf
 elif [[ "$ANTIZAPRET_DNS" == "5" ]]; then
-	# Malw
-	sed -i "s/'193\.58\.251\.251', '195\.112\.112\.1', '212\.92\.149\.149', '212\.92\.149\.150'/'46.226.165.53', '64.188.98.242'/" /etc/knot-resolver/kresd.conf
-	sed -i "s/'1\.1\.1\.1', '1\.0\.0\.1', '9\.9\.9\.10', '149\.112\.112\.10'/'46.226.165.53', '64.188.98.242'/" /etc/knot-resolver/kresd.conf
+        # Malw
+        sed -i "s/'193\.58\.251\.251', '195\.112\.112\.1', '212\.92\.149\.149', '212\.92\.149\.150'/'46.226.165.53', '64.188.98.242'/" /etc/knot-resolver/kresd.conf
+        sed -i "s/'1\.1\.1\.1', '1\.0\.0\.1', '9\.9\.9\.10', '149\.112\.112\.10'/'46.226.165.53', '64.188.98.242'/" /etc/knot-resolver/kresd.conf
 fi
 
 #
 # Настраиваем DNS в обычном VPN
 if [[ "$VPN_DNS" == "2" ]]; then
-	# Quad9
-	sed -i '/push "dhcp-option DNS 1\.1\.1\.1"/,+1c push "dhcp-option DNS 9.9.9.10"\npush "dhcp-option DNS 149.112.112.10"' /etc/openvpn/server/vpn*.conf
-	sed -i 's/1\.1\.1\.1, 1\.0\.0\.1/9.9.9.10, 149.112.112.10/' /etc/wireguard/templates/vpn-client*.conf
+        # Quad9
+        sed -i '/push "dhcp-option DNS 1\.1\.1\.1"/,+1c push "dhcp-option DNS 9.9.9.10"\npush "dhcp-option DNS 149.112.112.10"' /etc/openvpn/server/vpn*.conf
+        sed -i 's/1\.1\.1\.1, 1\.0\.0\.1/9.9.9.10, 149.112.112.10/' /etc/wireguard/templates/vpn-client*.conf
 elif [[ "$VPN_DNS" == "3" ]]; then
-	# Google
-	sed -i '/push "dhcp-option DNS 1\.1\.1\.1"/,+1c push "dhcp-option DNS 8.8.8.8"\npush "dhcp-option DNS 8.8.4.4"' /etc/openvpn/server/vpn*.conf
-	sed -i 's/1\.1\.1\.1, 1\.0\.0\.1/8.8.8.8, 8.8.4.4/' /etc/wireguard/templates/vpn-client*.conf
+        # Google
+        sed -i '/push "dhcp-option DNS 1\.1\.1\.1"/,+1c push "dhcp-option DNS 8.8.8.8"\npush "dhcp-option DNS 8.8.4.4"' /etc/openvpn/server/vpn*.conf
+        sed -i 's/1\.1\.1\.1, 1\.0\.0\.1/8.8.8.8, 8.8.4.4/' /etc/wireguard/templates/vpn-client*.conf
 elif [[ "$VPN_DNS" == "4" ]]; then
-	# AdGuard
-	sed -i '/push "dhcp-option DNS 1\.1\.1\.1"/,+1c push "dhcp-option DNS 94.140.14.14"\npush "dhcp-option DNS 94.140.15.15"' /etc/openvpn/server/vpn*.conf
-	sed -i 's/1\.1\.1\.1, 1\.0\.0\.1/94.140.14.14, 94.140.15.15/' /etc/wireguard/templates/vpn-client*.conf
+        # AdGuard
+        sed -i '/push "dhcp-option DNS 1\.1\.1\.1"/,+1c push "dhcp-option DNS 94.140.14.14"\npush "dhcp-option DNS 94.140.15.15"' /etc/openvpn/server/vpn*.conf
+        sed -i 's/1\.1\.1\.1, 1\.0\.0\.1/94.140.14.14, 94.140.15.15/' /etc/wireguard/templates/vpn-client*.conf
 elif [[ "$VPN_DNS" == "5" ]]; then
-	# Comss
-	sed -i '/push "dhcp-option DNS 1\.1\.1\.1"/,+1c push "dhcp-option DNS 83.220.169.155"\npush "dhcp-option DNS 212.109.195.93"' /etc/openvpn/server/vpn*.conf
-	sed -i 's/1\.1\.1\.1, 1\.0\.0\.1/83.220.169.155, 212.109.195.93/' /etc/wireguard/templates/vpn-client*.conf
+        # Comss
+        sed -i '/push "dhcp-option DNS 1\.1\.1\.1"/,+1c push "dhcp-option DNS 83.220.169.155"\npush "dhcp-option DNS 212.109.195.93"' /etc/openvpn/server/vpn*.conf
+        sed -i 's/1\.1\.1\.1, 1\.0\.0\.1/83.220.169.155, 212.109.195.93/' /etc/wireguard/templates/vpn-client*.conf
 elif [[ "$VPN_DNS" == "6" ]]; then
-	# Xbox
-	sed -i '/push "dhcp-option DNS 1\.1\.1\.1"/,+1c push "dhcp-option DNS 176.99.11.77"\npush "dhcp-option DNS 80.78.247.254"' /etc/openvpn/server/vpn*.conf
-	sed -i 's/1\.1\.1\.1, 1\.0\.0\.1/176.99.11.77, 80.78.247.254/' /etc/wireguard/templates/vpn-client*.conf
+        # Xbox
+        sed -i '/push "dhcp-option DNS 1\.1\.1\.1"/,+1c push "dhcp-option DNS 176.99.11.77"\npush "dhcp-option DNS 80.78.247.254"' /etc/openvpn/server/vpn*.conf
+        sed -i 's/1\.1\.1\.1, 1\.0\.0\.1/176.99.11.77, 80.78.247.254/' /etc/wireguard/templates/vpn-client*.conf
 elif [[ "$VPN_DNS" == "7" ]]; then
-	# Malw
-	sed -i '/push "dhcp-option DNS 1\.1\.1\.1"/,+1c push "dhcp-option DNS 46.226.165.53"\npush "dhcp-option DNS 64.188.98.242"' /etc/openvpn/server/vpn*.conf
-	sed -i 's/1\.1\.1\.1, 1\.0\.0\.1/46.226.165.53, 64.188.98.242/' /etc/wireguard/templates/vpn-client*.conf
+        # Malw
+        sed -i '/push "dhcp-option DNS 1\.1\.1\.1"/,+1c push "dhcp-option DNS 46.226.165.53"\npush "dhcp-option DNS 64.188.98.242"' /etc/openvpn/server/vpn*.conf
+        sed -i 's/1\.1\.1\.1, 1\.0\.0\.1/46.226.165.53, 64.188.98.242/' /etc/wireguard/templates/vpn-client*.conf
 fi
 
 #
 # Используем альтернативные диапазоны ip-адресов
 # 10.28.0.0/14 => 172.28.0.0/14
 if [[ "$ALTERNATIVE_IP" == "y" ]]; then
-	sed -i 's/10\.30\./172\.30\./g' /root/antizapret/proxy.py
-	sed -i 's/10\.29\./172\.29\./g' /etc/knot-resolver/kresd.conf
-	sed -i 's/10\./172\./g' /etc/openvpn/server/*.conf
-	sed -i 's/10\./172\./g' /etc/wireguard/templates/*.conf
-	find /etc/wireguard -name '*.conf' -exec sed -i 's/s = 10\./s = 172\./g' {} +
+    sed -i 's/10\.30\./172\.30\./g' /root/antizapret/proxy.py
+    sed -i 's/10\.29\./172\.29\./g' /etc/knot-resolver/kresd.conf
+    sed -i 's/10\./172\./g' /etc/openvpn/server/*.conf
+    sed -i 's/10\./172\./g' /etc/wireguard/templates/*.conf
+    find /etc/wireguard -name '*.conf' -exec sed -i 's/s = 10\./s = 172\./g' {} +
+    IP_ADDR="172.29.12.1"
 else
-	find /etc/wireguard -name '*.conf' -exec sed -i 's/s = 172\./s = 10\./g' {} +
+    find /etc/wireguard -name '*.conf' -exec sed -i 's/s = 172\./s = 10\./g' {} +
+    IP_ADDR="10.29.12.1"
 fi
+
+INTERFACE="antizapret-xray"
+SERVICE_FILE="/etc/systemd/system/$INTERFACE.service"
+
+# Создаём systemd unit для интерфейса DNS Xray
+cat <<EOL > "$SERVICE_FILE"
+[Unit]
+Description=Dummy interface $INTERFACE
+After=network-pre.target
+Before=network.target
+DefaultDependencies=no
+
+[Service]
+Type=oneshot
+ExecStartPre=/sbin/modprobe dummy
+ExecStart=/sbin/ip link add dev $INTERFACE type dummy
+ExecStart=/sbin/ip addr add $IP_ADDR/24 dev $INTERFACE
+ExecStart=/sbin/ip link set $INTERFACE up
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+
+echo "Сервис $INTERFACE.service создан и интерфейс $INTERFACE поднят с IP $IP_ADDR"
+
+
+
+
+#Создаем systemd unit для загрузки пользователей в xray после перезагрузки
+
+SERVICE_PATH="/etc/systemd/system/load-users-xray.service"
+
+cat <<EOL > "$SERVICE_PATH"
+[Unit]
+Description=Run antizapret client.py after xray
+After=xray.service
+Requires=xray.service
+
+[Service]
+Type=oneshot
+ExecStart=/root/antizapret/client.py 10
+
+[Install]
+WantedBy=xray.service
+EOL
+
+echo "Сервис $SERVICE_NAME создан и включен."
 
 #
 # Запрещаем несколько одновременных подключений к OpenVPN для одного клиента
 if [[ "$OPENVPN_DUPLICATE" == "n" ]]; then
-	sed -i '/^duplicate-cn/s/^/#/' /etc/openvpn/server/*.conf
+        sed -i '/^duplicate-cn/s/^/#/' /etc/openvpn/server/*.conf
 fi
 
 #
 # Включим подробные логи в OpenVPN
 if [[ "$OPENVPN_LOG" == "y" ]]; then
-	sed -i '/^#\(verb\|log\)/s/^#//' /etc/openvpn/server/*.conf
+        sed -i '/^#\(verb\|log\)/s/^#//' /etc/openvpn/server/*.conf
 fi
 
 #
 # Загружаем и создаем списки исключений IP-адресов
 /root/antizapret/doall.sh ip
 
-#
-# Настраиваем сервера OpenVPN и WireGuard/AmneziaWG для первого запуска
-# Пересоздаем для всех существующих пользователей файлы подключений
-# Если пользователей нет, то создаем новых пользователей 'antizapret-client' для OpenVPN и WireGuard/AmneziaWG
-/root/antizapret/client.sh 7
 
-#
+#Создаем окружение
+apt-get install -y python3-venv
+python3 -m venv /root/antizapret/venv
+/root/antizapret/venv/bin/pip install  xtlsapi 
+/root/antizapret/client.py 11 default-user 3650
+
 # Включим обновляемые службы
 systemctl enable kresd@1
 systemctl enable kresd@2
+systemctl enable "$INTERFACE.service"
 systemctl enable antizapret
 systemctl enable antizapret-update
 systemctl enable antizapret-update.timer
@@ -475,42 +660,51 @@ systemctl enable openvpn-server@vpn-udp
 systemctl enable openvpn-server@vpn-tcp
 systemctl enable wg-quick@antizapret
 systemctl enable wg-quick@vpn
+systemctl enable xray
+systemctl enable load-users-xray.service
+
+#Создаем дефолтного пользователя
+/root/antizapret/client.py 11 default-user 3650
 
 ERRORS=""
 
 if [[ "$OPENVPN_PATCH" != "0" ]]; then
-	if ! /root/antizapret/patch-openvpn.sh "$OPENVPN_PATCH"; then
-		ERRORS+="\n\e[1;31mAnti-censorship patch for OpenVPN has not installed!\e[0m Please run '/root/antizapret/patch-openvpn.sh' after rebooting\n"
-	fi
+        if ! /root/antizapret/patch-openvpn.sh "$OPENVPN_PATCH"; then
+                ERRORS+="\n\e[1;31mAnti-censorship patch for OpenVPN has not installed!\e[0m Please run '/root/antizapret/patch-openvpn.sh' after rebooting\n"
+        fi
 fi
 
 if [[ "$OPENVPN_DCO" == "y" ]]; then
-	if ! /root/antizapret/openvpn-dco.sh y; then
-		ERRORS+="\n\e[1;31mOpenVPN DCO has not turn on!\e[0m Please run '/root/antizapret/openvpn-dco.sh y' after rebooting\n"
-	fi
+        if ! /root/antizapret/openvpn-dco.sh y; then
+                ERRORS+="\n\e[1;31mOpenVPN DCO has not turn on!\e[0m Please run '/root/antizapret/openvpn-dco.sh y' after rebooting\n"
+        fi
 fi
 
 #
 # Если есть ошибки, выводим их
 if [[ -n "$ERRORS" ]]; then
-	echo -e "$ERRORS"
+        echo -e "$ERRORS"
 fi
 
 #
 # Создадим файл подкачки размером 512 Мб если его нет
 if [[ -z "$(swapon --show)" ]]; then
-	set +e
-	SWAPFILE="/swapfile"
-	SWAPSIZE=512
-	dd if=/dev/zero of=$SWAPFILE bs=1M count=$SWAPSIZE
-	chmod 600 "$SWAPFILE"
-	mkswap "$SWAPFILE"
-	swapon "$SWAPFILE"
-	echo "$SWAPFILE none swap sw 0 0" >> /etc/fstab
+        set +e
+        SWAPFILE="/swapfile"
+        SWAPSIZE=512
+        dd if=/dev/zero of=$SWAPFILE bs=1M count=$SWAPSIZE
+        chmod 600 "$SWAPFILE"
+        mkswap "$SWAPFILE"
+        swapon "$SWAPFILE"
+        echo "$SWAPFILE none swap sw 0 0" >> /etc/fstab
 fi
 
 echo
 echo -e '\e[1;32mAntiZapret VPN + full VPN installed successfully!\e[0m'
+
+git clone https://github.com/UtyaVPN/UtyaVPN.git /root/bot
+/root/bot/setup.sh
+
 echo 'Rebooting...'
 
 #
